@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>JARVIS — Setup</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: system-ui, sans-serif; }
+    body {
+      min-height: 100dvh; display: flex; align-items: center; justify-content: center;
+      background: radial-gradient(120% 90% at 50% 30%, #042c22 0%, #021410 45%, #010604 100%);
+      color: #d1fae5; padding: 24px;
+    }
+    .card { width: min(520px, 94vw); border: 1px solid rgba(16,185,129,.35); border-radius: 18px;
+            padding: 36px 26px; background: rgba(1,10,8,.6); box-shadow: 0 0 60px rgba(16,185,129,.15); }
+    h1 { letter-spacing: .4em; font-size: 21px; color: #6ee7b7; text-align: center; margin-bottom: 6px; }
+    p.sub { letter-spacing: .26em; font-size: 8.5px; color: #34d39988; text-align: center; margin-bottom: 28px; }
+    label { display: block; font-size: 11px; letter-spacing: .15em; color: #a7f3d0; margin-bottom: 8px; }
+    input { width: 100%; padding: 13px 16px; border-radius: 12px; border: 1px solid rgba(16,185,129,.4);
+            background: #010806; color: #d1fae5; font-size: 15px; outline: none; }
+    input:focus { border-color: #6ee7b7; box-shadow: 0 0 18px rgba(16,185,129,.25); }
+    .hint { font-size: 11px; color: #d1fae566; line-height: 1.65; margin: 14px 0 22px; }
+    button { width: 100%; padding: 14px; border-radius: 999px; border: 1px solid rgba(167,243,208,.6);
+             background: rgba(16,185,129,.15); color: #ecfdf5; font-size: 13px; font-weight: 700;
+             letter-spacing: .3em; cursor: pointer; }
+    button:active { transform: scale(.97); background: rgba(16,185,129,.3); }
+    .err { color: #fca5a5; font-size: 11px; margin-top: 10px; display: none; }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <h1>JARVIS</h1>
+    <p class="sub">JUST A RATHER VERY INTELLIGENT SYSTEM</p>
+    <label>JARVIS WEBSITE URL</label>
+    <input id="u" placeholder="https://your-jarvis-site.example.com" autocomplete="off" />
+    <p class="hint">
+      Enter the address of your JARVIS website (your deployed Next.js app — z.ai preview link, Vercel URL or your
+      own server). The app connects to the SAME brain: tasks, memory, settings and the AI voice stay in sync —
+      and your phone appears on the website under <b>MY DEVICES</b>.
+    </p>
+    <button id="go">CONNECT</button>
+    <p class="err" id="err">That doesn't look like a URL, sir. Try again.</p>
+  </div>
+  <script>
+    const u = document.getElementById("u");
+    const err = document.getElementById("err");
+    const saved = localStorage.getItem("jarvis_site_url");
+    if (saved) location.replace(saved); // straight in — already configured
+
+    function save() {
+      let v = u.value.trim();
+      if (!v) return;
+      if (!/^https?:\/\//i.test(v) && !v.includes(".")) { err.style.display = "block"; return; }
+      if (!/^https?:\/\//i.test(v)) v = "https://" + v;
+      localStorage.setItem("jarvis_site_url", v);
+      location.replace(v);
+    }
+    document.getElementById("go").onclick = save;
+    u.addEventListener("keydown", (e) => e.key === "Enter" && save());
+  </script>
+</body>
+</html>

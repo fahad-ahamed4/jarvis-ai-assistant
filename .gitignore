@@ -9,11 +9,23 @@ node_modules/
 !.yarn/versions
 
 # next.js build output
-/.next/
-/out/
-/build/
-*.tsbuildinfo
-next-env.d.ts
+client/.next/
+client/out/
+client/next-env.d.ts
+client/*.tsbuildinfo
+
+# android build artifacts
+android/.gradle/
+android/app/build/
+android/build/
+android/capacitor-cordova-android-plugins/build/
+android/local.properties
+android/.idea/
+*.apk.idsig
+
+# electron build output
+electron/dist/
+electron/node_modules/
 
 # environment & secrets (never commit these)
 .env

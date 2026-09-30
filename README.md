@@ -1,12 +1,12 @@
-# 🤖 JARVIS — Real-Life AI Assistant (PWA)
+# 🤖 JARVIS — Real-Life AI Assistant (Web · Windows · Android)
 
-> A voice-controlled AI assistant web app inspired by a viral TikTok concept — rebuilt as a **real, working product** with a genuine AI brain (GLM), **Bangla / English / हिंदी** voice support, and a cinematic sci-fi UI.
+> A voice-controlled AI assistant inspired by a viral TikTok concept — rebuilt as a **real, working multi-platform product** with a genuine AI brain (GLM), **Bangla / English / हिंदी** voice, and a cinematic sci-fi UI. One brain, every device.
 
 ![Next.js](https://img.shields.io/badge/Next.js-16-black?logo=next.js)
 ![React](https://img.shields.io/badge/React-19-61dafb?logo=react)
 ![TypeScript](https://img.shields.io/badge/TypeScript-5-3178c6?logo=typescript)
-![Prisma](https://img.shields.io/badge/Prisma-6-2d3748?logo=prisma)
-![PWA](https://img.shields.io/badge/PWA-installable-5a0fc8?logo=pwa)
+![Electron](https://img.shields.io/badge/Electron-Windows-47848f?logo=electron)
+![Capacitor](https://img.shields.io/badge/Capacitor-Android-119eff?logo=capacitor)
 ![License](https://img.shields.io/badge/License-MIT-green)
 
 <p align="center">
@@ -19,117 +19,87 @@
 
 ## ✨ Features
 
-- 🎙️ **Voice commands in 3 languages** — Bangla (বাংলা), English & हिंदी are auto-detected per command. No language switch needed; just speak.
-- ⚡ **Lightning-fast replies** — the AI brain **streams** its answer sentence-by-sentence and JARVIS starts **speaking while still generating** (~0.6–2 s from command to voice, time/date answered in <100 ms).
-- 🧠 **Real AI brain (GLM)** — not canned responses. Every command goes through an LLM that returns strict-JSON actions + a natural reply in your language.
-- 🎬 **Real actions, not demos:**
-  - 📱 **Open apps** — "instagram kholo" / "facebook kholo" → really opens the app/site
-  - 🎵 **Play songs** — "sunflower song chalao" → finds the real song on YouTube & plays it
-  - ✅ **Tasks** — add / complete / delete tasks by voice ("ekta task koro", "टास्क जोड़ो")
-  - 📰 **News** — "today's headlines" → live web search, speaks real current news
-  - 🧠 **Memory** — "মনে রাখো আমার বাসা ঢাকায়" → stored & recallable later
-  - 🕒 **Time / date** — answered instantly
-- 🗂️ **4 modules** like the original video — **MEMORY · CHAT · SOUL · SETTING** (+ NEWS)
-- 🌌 **Particle-sphere orb** — 900-particle 3D canvas orb with IDLE / LISTENING / THINKING / SPEAKING states, themed colors, live mic level.
-- 🤖 **Cute anime-style robot buddy** — blinks, floats, looks around and reacts to JARVIS' state.
-- 🔊 **Hybrid TTS engine** — premium cloud voice for English/Hindi, device voice for Bangla (browser SpeechSynthesis), with automatic fallback so JARVIS **never goes silent**.
-- 🔣 **Voice modes** — `AUTO` (smart routing) / `JARVIS AI` (cloud only) / `DEVICE` (offline) switchable in SETTING, with a built-in mic & voice test panel.
-- 💬 **Text input** — type commands in any of the 3 languages (great when the mic is unavailable).
-- 📲 **Installable PWA** — install on Android/iOS home screen like a real app.
-- ⌨️ **Barge-in** — type a new command while JARVIS is speaking; it stops and obeys instantly.
+- 🎙️ **Voice commands in 3 languages** — Bangla (বাংলা), English & हिंदी auto-detected per command.
+- 🧠 **Two voice-input engines (new!)** — fast **browser** speech recognition *plus* an **AI CLOUD engine** (mic → GLM speech-to-text) that makes voice work in the **desktop app, Android app, Firefox and even iOS**. AUTO mode picks the right one and switches transparently.
+- ⚡ **Lightning-fast replies** — the brain streams sentence-by-sentence; JARVIS **speaks while still thinking** (~0.6–2 s, time/date <100 ms).
+- 🖥️📱 **Windows `.exe` + Android `.apk` (new!)** — real installable apps that load the SAME JARVIS brain. Built automatically by GitHub Actions on every release.
+- 🔗 **Multi-device network (new!)** — every install (Web PWA / Windows / Android) registers itself and appears on the website under **SETTING → MY DEVICES** with live online status. Send a command to any device from the website — it **speaks and executes it there**, then replies back.
+- 🎬 **Real actions:** open apps ("instagram kholo"), play real YouTube songs ("sunflower song chalao"), add/complete tasks by voice, live news headlines, permanent memory, instant time/date.
+- 🗂️ **4 modules** like the original video — **MEMORY · CHAT · SOUL · SETTING** (+ NEWS), particle orb (900 particles, 4 states), cute anime robot buddy, hybrid TTS with automatic fallback (never silent), PWA installable, barge-in typing.
 
-## 🧠 How it works
+## 🏗 Project structure
 
 ```
-┌─────────────────────────────  Browser (PWA)  ─────────────────────────────┐
-│  VoiceListener (webkitSpeechRecognition: bn-BD / en-US / hi-IN)           │
-│  Text input (any language)                                                │
-│         │  command                                                        │
-│         ▼                                                                 │
-│  POST /api/jarvis  ──►  GLM brain (STREAMING, strict-JSON actions)        │
-│         │  NDJSON stream: {meta} {r,delta}… {end(reply, action)}          │
-│         ▼                                                                 │
-│  SentenceSpeaker  ──►  /api/tts (cloud WAV: en="jam", bn="kazi")          │
-│        │               └─ fallback: device SpeechSynthesis (offline-safe) │
-│         ▼                                                                 │
-│  Action executor: open_app · play_song · add_task · complete_task ·       │
-│                   delete_task · show_news · save_memory · show_time/date  │
-└───────────────────────────────────────────────────────────────────────────┘
-        │                        │                    │
-        ▼                        ▼                    ▼
-   Prisma (SQLite)         Z.AI web_search      YouTube search
-   Task/Message/Setting    (live news)          (resolve-song API)
+jarvis/
+├── client/                 # Next.js 16 app — the website, the UI and the AI brain API
+│   ├── src/app/api/        #   jarvis (GLM brain, streaming) · tts · asr · news · tasks ·
+│   │                       #   messages · settings · devices (+SSE relay) · download
+│   ├── src/components/jarvis/  # jarvis-app · orb · jarvis-bot · screens
+│   ├── src/lib/jarvis/     #   speech.ts (hybrid TTS + 2 voice engines) · types.ts
+│   ├── prisma/schema.prisma    # Task · Message · Setting · Device
+│   └── db/custom.db        #   ready-made demo database
+├── server/                 # Optional standalone device hub (zero-dep Node, for Vercel deploys)
+│   └── device-hub.mjs
+├── electron/               # Windows desktop app → archer.exe (+ NSIS installer)
+│   ├── main.js             #   loads your JARVIS website, mic permissions, server picker
+│   └── build/icon.png
+├── android/                # Capacitor Android project → archer.apk (signed release)
+├── www/                    # Android first-run "enter your site URL" page
+├── .github/workflows/
+│   └── build-release.yml   # Auto-builds archer.exe + archer.apk on tags & manual runs
+├── capacitor.config.json
+└── package.json            # root scripts (dev/build/db:push/hub/cap:sync)
 ```
-
-**Key files**
-
-| Path | Purpose |
-|---|---|
-| `src/app/api/jarvis/route.ts` | GLM brain — streaming JSON action protocol, language enforcement, server-side task/memory execution |
-| `src/app/api/tts/route.ts` | Cloud TTS → WAV (voice routing + retries) |
-| `src/app/api/news/route.ts` | Live headlines via Z.AI `web_search` |
-| `src/app/api/resolve-song/route.ts` | YouTube search scraping → real `videoId` (no API key needed) |
-| `src/app/api/{tasks,messages,settings}/route.ts` | CRUD for tasks / memory / settings |
-| `src/components/jarvis/jarvis-app.tsx` | Main app — voice loop, streaming playback, barge-in, boot screen |
-| `src/components/jarvis/orb.tsx` | 900-particle canvas orb (4 states, theme colors) |
-| `src/components/jarvis/jarvis-bot.tsx` | The cute robot buddy (SVG, animated) |
-| `src/components/jarvis/screens.tsx` | MEMORY / CHAT / SOUL / SETTING modules |
-| `src/lib/jarvis/speech.ts` | Hybrid TTS engine, sentence queue, mic tools, audio unlock |
-| `prisma/schema.prisma` | Task / Message / Setting models |
 
 ## 📋 Requirements
 
 | Requirement | Details |
 |---|---|
-| **Node.js** | **v20 or newer** (v22 LTS recommended) — *or* Bun ≥ 1.3 |
-| **Z.AI API access** | The AI brain / cloud voice / news need a **Z.AI API key** (see step 4) |
-| **Browser (voice)** | Chrome, Edge or any Chromium browser (they support `webkitSpeechRecognition`). Firefox & iOS Safari can **type** commands but have no voice recognition |
-| **Microphone** | Any working mic (or use text input) |
+| **Node.js** | **v20+** (v22 LTS recommended) |
+| **Z.AI API access** | The AI brain / cloud voice / news / AI speech-to-text need a **Z.AI API key** (step 4) |
+| **Browser (web)** | Chrome / Edge / Samsung Internet recommended; **Firefox & iOS now get voice too** via the AI engine |
+| **Windows app** | Windows 10/11 x64 — just download `archer.exe`, no install needed |
+| **Android app** | Android 6+ — install `archer.apk`, allow "install from this source" |
 
 ## ⚡ Installation (full process)
 
-### 1) Clone the repository
+### 1) Clone
 
 ```bash
 git clone https://github.com/fahad-ahamed4/jarvis-ai-assistant.git
 cd jarvis-ai-assistant
 ```
 
-### 2) Install dependencies
+### 2) Install (client + root tooling)
 
 ```bash
-npm install          # ← with npm (Node 20+)
-# or
-bun install          # ← with bun
+npm install            # root: Capacitor CLI + platform (for Android builds)
+cd client
+npm install            # client: Next.js app dependencies
+cd ..
 ```
 
-### 3) Create the environment file
-
-Copy the example and adjust if needed (default works out of the box):
+### 3) Environment file
 
 ```bash
-cp .env.example .env          # Linux / macOS / Git Bash
-# Windows CMD:  copy .env.example .env
-# Windows PowerShell:  Copy-Item .env.example .env
+cp client/.env.example client/.env
 ```
 
-`.env` content:
+Content (SQLite database inside `client/db/`):
 
 ```env
 DATABASE_URL=file:../db/custom.db
 ```
 
-> This points Prisma to the SQLite database at `db/custom.db`. A demo database **is already included**, so the app works instantly with sample data. To start fresh, delete `db/custom.db` and run `npm run db:push`.
+> A demo database **is included** (`client/db/custom.db`) — works instantly. For a fresh start, delete it and run `npm run db:push`.
 
-### 4) Configure the Z.AI API  (`.z-ai-config`)
+### 4) Z.AI API config  (`.z-ai-config`)
 
-The AI brain uses the `z-ai-web-dev-sdk`, which reads a config file named `.z-ai-config` (searched in the project folder, then your home directory). Create it in the project root:
+The brain uses `z-ai-web-dev-sdk`, which reads a `.z-ai-config` file (project root or home dir):
 
 ```bash
 cp .z-ai-config.example .z-ai-config
 ```
-
-Then open `.z-ai-config` and fill in your own credentials:
 
 ```json
 {
@@ -138,57 +108,79 @@ Then open `.z-ai-config` and fill in your own credentials:
 }
 ```
 
-- `baseUrl` — your Z.AI (GLM) API endpoint, including the `/v1` part
-- `apiKey` — your Z.AI API key
-- ⚠️ **Never commit** your real `.z-ai-config` — it is already git-ignored.
+⚠️ Never commit your real `.z-ai-config` — it's git-ignored.
 
-### 5) Set up the database (Prisma)
+### 5) Database (Prisma)
 
 ```bash
-npx prisma generate     # generates the Prisma client
-npm run db:push         # creates/syncs the SQLite tables
+npm run db:push        # creates/syncs SQLite tables
 ```
 
-### 6) Run it! 🚀
+### 6) Run the website 🚀
 
 ```bash
-npm run dev
+npm run dev            # → http://localhost:3000 (from the repo root)
 ```
 
-Open **http://localhost:3000**, tap **INITIALIZE**, allow the microphone — and JARVIS is alive.
+Tap **INITIALIZE**, allow the microphone — JARVIS is alive. (Production: `npm run build` then `npm start` — Next.js standalone, plain Node, no bun needed.)
 
-> **Windows tip:** run the commands from *Git Bash* or *WSL* (the `npm run dev` / `start` scripts use `tee`, which Windows CMD doesn't have). On CMD/PowerShell you can always run: `npx next dev -p 3000`
+### 7) Deploy it (so apps & phones can connect)
 
-### 7) Production build (optional)
+Any HTTPS host works — VPS (recommended: `node .next/standalone/server.js` behind Caddy/Nginx), Vercel (note: SQLite is ephemeral there — use the [standalone device hub](#-device-hub-for-vercel) if you rely on MY DEVICES), or your z.ai preview link.
+
+> 📱 **Phone (PWA):** open the site in Chrome → ⋮ → *Add to Home screen*.
+
+## 🖥️📱 Get the Windows & Android apps
+
+### Easiest — from inside JARVIS itself
+
+Open **SETTING → GET THE JARVIS APP** on your deployed website and tap:
+
+- **WINDOWS (.exe)** → downloads `archer.exe` from the latest GitHub release
+- **ANDROID (.apk)** → downloads `archer.apk`
+
+The buttons auto-serve whatever GitHub Actions built last — no GitHub visit needed.
+
+### First run of each app
+
+Both apps ask once for your **JARVIS website URL** (the address you deployed in step 7), then behave exactly like the website — same orb, same voice, same commands. They instantly appear on the website under **SETTING → MY DEVICES** with a live ● ONLINE badge.
+
+### Building the apps yourself
 
 ```bash
-npm run build
+# Windows (on a Windows machine):
+cd electron && npm install && npm run dist     # → electron/dist/archer.exe
+
+# Android (anywhere with JDK 17):
+npm install && npx cap sync android
+cd android && ./gradlew assembleRelease        # → android/archer-release.apk
 ```
 
-The project uses Next.js `output: "standalone"`, so after building you can run the server directly:
+### 🤖 Auto-build (GitHub Actions)
+
+Every push of a version tag (or a manual **Run workflow** click on the Actions tab) builds both apps on GitHub's servers and attaches them to a Release:
 
 ```bash
-# with bun (script default):
-npm start
-# or with plain node:
-NODE_ENV=production node .next/standalone/server.js
+git tag v1.0 && git push origin v1.0
 ```
 
-## 📱 Install on your phone (PWA)
+That's where the SETTING download buttons point — fully automatic.
 
-JARVIS must be served over **HTTPS** to install as an app (localhost works too for testing).
+## 🔗 Device network — how it works
 
-**Android (Chrome):** open the site → tap **⋮ menu → "Add to Home screen" / "Install app"** → launch JARVIS like a real app.
+```
+Website (browser) ──┐                    ┌── Windows app (archer.exe)
+Android app ────────┼──► JARVIS server ──┼──► Web PWA (phone)
+Tablet PWA ─────────┘    (Next.js API +   └── Any other install
+                          SSE relay)
+                          │
+                          ▼
+            Same GLM brain · same tasks · same memory · same settings
+```
 
-**iPhone (Safari):** open the site → **Share button → "Add to Home Screen"** → confirm.
-
-Easy HTTPS options:
-
-| Option | How |
-|---|---|
-| **Vercel** (easiest) | Push to GitHub → import the repo on vercel.com → add a `POSTGRES`-free setup is not needed; just add env var `DATABASE_URL=file:../db/custom.db`. Note: on Vercel the SQLite file is ephemeral — for heavy use deploy on a VPS instead |
-| **VPS / home server** | Run the standalone build behind Caddy/Nginx with a domain + HTTPS |
-| **Quick test tunnel** | `npx ngrok http 3000` → open the HTTPS URL on your phone |
+- Each install registers (id + name + platform) and heartbeats every 45 s.
+- **SETTING → MY DEVICES** shows every device, live online status, and a **COMMAND** box — type `kemon acho` there and the phone/PC JARVIS **says it out loud and acts**.
+- The device replies back and the website shows its answer as a toast.
 
 ## 🎤 Voice command examples
 
@@ -197,111 +189,63 @@ Easy HTTPS options:
 | বাংলা | "ইনস্টাগ্রাম খোলো" | Instagram opens |
 | বাংলা | "মনে রাখো আমার বাসা ঢাকায়" | Saved to memory |
 | Banglish | "sunflower song chalao" | Plays *Sunflower* on YouTube |
-| Banglish | "ekta task koro — buy milk" | Task added |
 | English | "What's today's news?" | Speaks live headlines |
-| English | "Who are you?" | JARVIS introduces itself |
 | हिंदी | "एक टास्क जोड़ो — video upload karna hai" | Task added (like the original video) |
-| हिंदी | "facebook kholo" | Facebook opens |
-| Any | "What time is it?" / "টাইম কত" | Instant answer |
 
-## ⚙️ Settings explained (SETTING screen)
+## ⚙️ SETTING screen
 
-| Setting | What it does |
+| Control | What it does |
 |---|---|
-| **Voice Mode: AUTO** | Smart routing — cloud voice for EN/HI, device voice for Bangla (recommended) |
-| **Voice Mode: JARVIS AI** | Always use the premium cloud voice (needs internet + API) |
-| **Voice Mode: DEVICE** | Always use the offline device voice (zero API cost, works without internet) |
-| **Mic test** | Checks your microphone and shows MIC OK / NO MIC / BLOCKED |
-| **Voice test** | Plays a sample in English + Bangla to verify sound |
-| **Soul** | Give JARVIS a custom personality (saved permanently) |
-| **Orb color / speed / wake word** | Personalize the orb & voice |
+| **JARVIS VOICE** | AUTO (smart routing) / JARVIS AI (cloud) / DEVICE (offline) |
+| **VOICE INPUT ENGINE** | AUTO / BROWSER (fast native) / AI CLOUD (GLM speech-to-text — works everywhere) |
+| **MIC TEST / VOICE TEST** | One-tap diagnostics |
+| **GET THE JARVIS APP** | ⬇️ archer.exe + ⬇️ archer.apk (latest CI build) |
+| **MY DEVICES** | Live device network + remote commands |
+| Soul / orb color / speed / volume / wake word | Personality & look |
 
-## 🌐 Browser compatibility
+## 🌐 Browser & platform compatibility
 
-| Browser | Voice input | Voice output | Text input | Install PWA |
-|---|---|---|---|---|
-| Chrome (Android/desktop) | ✅ | ✅ | ✅ | ✅ |
-| Edge | ✅ | ✅ | ✅ | ✅ |
-| Samsung Internet | ✅ | ✅ | ✅ | ✅ |
-| Firefox | ❌ no SpeechRecognition | ✅ | ✅ | ✅ |
-| iOS Safari | ❌ (use Chrome on iOS is also limited) | ✅ (after first tap) | ✅ | ✅ via Safari share menu |
-
-> On iOS, Safari does not expose speech recognition to web apps — use **text commands** there. Voice output needs one tap on the screen first (iOS autoplay policy); the INITIALIZE screen handles this automatically.
+| Platform | Voice input | Voice output | Notes |
+|---|---|---|---|
+| Chrome / Edge / Samsung Internet | ✅ native | ✅ | Best experience |
+| **Windows app (archer.exe)** | ✅ AI engine | ✅ | Chromium without Google speech keys → AI engine auto-activates |
+| **Android app (archer.apk)** | ✅ AI engine | ✅ | WebView has no speech service → AI engine auto-activates |
+| Firefox | ✅ AI engine | ✅ | Used to be typing-only — now full voice! |
+| iOS Safari | ✅ AI engine | ✅ (after first tap) | PWA install via Share menu |
 
 ## 🧯 Troubleshooting
 
 | Problem | Fix |
 |---|---|
-| **"Microphone blocked" toast** | Chrome → ⋮ → Site settings → Microphone → **Allow** → reload. On iPhone: Settings → Safari → Microphone |
-| **JARVIS is silent** | SETTING → run **VOICE TEST**. Try Voice Mode **DEVICE** (works offline). Check device volume / silent switch |
-| **Mic turns off after a while** | Chrome auto-stops recognition in long silence — JARVIS auto-restarts it; tap the mic once to re-arm instantly |
-| **YouTube player shows sign-in wall** | Only happens on datacenter IPs (VPNs) — on normal phones/WiFi it plays. The **OPEN IN YOUTUBE** button always works |
-| **News fails** | The Z.AI API key/connection is needed for live search — check `.z-ai-config` |
-| **Port 3000 busy** | `npx next dev -p 3001` |
-| **Database errors on fresh install** | `npm run db:push` then reload |
-| **Windows `tee` error with npm run dev** | Use Git Bash/WSL, or run `npx next dev` directly |
-
-## 🗂 Project structure
-
-```
-jarvis-ai-assistant/
-├── src/
-│   ├── app/
-│   │   ├── api/                 # jarvis (brain) · tts · news · tasks ·
-│   │   │                        # messages · settings · resolve-song
-│   │   ├── globals.css          # theme, animations, safe-area
-│   │   ├── layout.tsx           # fonts, Toaster, metadata
-│   │   └── page.tsx
-│   ├── components/
-│   │   ├── jarvis/              # jarvis-app · orb · jarvis-bot · screens
-│   │   └── ui/                  # shadcn/ui components
-│   ├── hooks/
-│   ├── lib/
-│   │   ├── jarvis/              # speech.ts (hybrid TTS engine) · types.ts
-│   │   ├── db.ts                # Prisma client
-│   │   └── utils.ts
-├── prisma/schema.prisma         # Task · Message · Setting
-├── db/custom.db                 # ready-made demo database
-├── public/                      # PWA manifest + icons
-├── docs/                        # screenshots
-├── .env.example
-├── .z-ai-config.example
-└── package.json
-```
+| "Microphone blocked" | Chrome → ⋮ → Site settings → Microphone → **Allow**. Windows app: Windows Settings → Privacy → Microphone |
+| Download buttons say BUILD QUEUED | No release yet — push a tag (or Actions → Run workflow) and wait ~6-10 min |
+| App can't reach the website | Re-check the URL in the app (Electron menu: **JARVIS → Switch Server…**, Ctrl+S). Android: clear app data to re-enter |
+| YouTube sign-in wall | Only on datacenter IPs/VPNs — normal phones/WiFi play fine; **OPEN IN YOUTUBE** always works |
+| News fails | `.z-ai-config` missing/invalid — the brain needs it for live search |
+| AI engine typo-prone | Speak clearly; the clip is transcribed by GLM — proper nouns may vary |
 
 ## 🛠 Tech stack
 
-Next.js 16 (App Router) · React 19 · TypeScript 5 · Tailwind CSS 4 · shadcn/ui · Prisma 6 + SQLite · z-ai-web-dev-sdk (GLM) · Web Speech API · Canvas 2D particle engine · PWA
+Next.js 16 (App Router, standalone) · React 19 · TypeScript 5 (strict builds) · Tailwind CSS 4 · Prisma 6 + SQLite · z-ai-web-dev-sdk (GLM chat/TTS/ASR/search) · Web Speech API · MediaRecorder · Canvas 2D particle engine · SSE relay · PWA · Electron 37 · Capacitor 7 · GitHub Actions
 
 ## 🇧🇩 বাংলা ইনস্টল গাইড (সংক্ষেপে)
 
 ```bash
-# ১) রিপো clone করো
+# ১) clone + install (Node.js 20+)
 git clone https://github.com/fahad-ahamed4/jarvis-ai-assistant.git
-cd jarvis-ai-assistant
+cd jarvis-ai-assistant && npm install && cd client && npm install && cd ..
 
-# ২) ডিপেন্ডেন্সি ইনস্টল (Node.js 20+ লাগবে)
-npm install
+# ২) environment + API key
+cp client/.env.example client/.env
+cp .z-ai-config.example .z-ai-config   # → নিজের Z.AI apiKey বসাও
 
-# ৩) এনভায়রনমেন্ট ফাইল বানাও
-cp .env.example .env
-
-# ৪) Z.AI API কনফিগ বানাও (নিজের apiKey বসাও)
-cp .z-ai-config.example .z-ai-config
-#   .z-ai-config ফাইলে গিয়ে "apiKey" এর জায়গায় তোমার Z.AI key দাও
-
-# ৫) ডাটাবেস সেটআপ
-npx prisma generate
+# ৩) database + চালাও
 npm run db:push
-
-# ৬) চালাও!
-npm run dev
-#   → http://localhost:3000 খোলো → INITIALIZE চাপো → মাইক পারমিশন দাও
+npm run dev        # → http://localhost:3000 → INITIALIZE
 ```
 
-**ফোনে ইনস্টল (PWA):** HTTPS দিয়ে সাইট খুলে Chrome এ **"Add to Home screen"** চাপলেই JARVIS অ্যাপের মতো ইনস্টল হয়ে যাবে।
-
-**ভয়েস কমান্ড:** বাংলা, English বা हिंदी — যেকোনো ভাষায় সরাসরি বলো, JARVIS নিজেই বুঝে নেবে। যেমন: *"ইনস্টাগ্রাম খোলো"*, *"sunflower song chalao"*, *"What's the news?"*
+**Windows app:** SETTING → GET THE JARVIS APP → WINDOWS (.exe) ডাউনলোড করে চালাও → প্রথমবার তোমার ওয়েবসাইটের URL দাও।
+**Android app:** ANDROID (.apk) ইনস্টল করো → প্রথমবার URL দাও → ফোনটা ওয়েবসাইটের MY DEVICES এ দেখা যাবে, ওয়েবসাইট থেকে সরাসরি command পাঠানো যাবে!
 
 ## 📄 License
 
@@ -309,4 +253,4 @@ npm run dev
 
 ---
 
-*Inspired by a TikTok concept video — rebuilt from scratch as a fully working product. "I am JARVIS, sir. Always at your service."* 🤖
+*Inspired by a TikTok concept video — rebuilt from scratch as a real multi-platform product. "I am JARVIS, sir. Always at your service."* 🤖

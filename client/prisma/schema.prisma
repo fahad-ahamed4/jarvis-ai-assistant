@@ -1,0 +1,48 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model Task {
+  id        String   @id @default(cuid())
+  title     String
+  done      Boolean  @default(false)
+  createdAt DateTime @default(now())
+}
+
+model Message {
+  id        String   @id @default(cuid())
+  role      String // "user" | "assistant"
+  content   String
+  language  String   @default("en")
+  action    String? // JSON serialized action object
+  createdAt DateTime @default(now())
+}
+
+model Setting {
+  id         String  @id @default("main")
+  soul       String  @default("")
+  speed      Float   @default(1.0)
+  orbColor   String  @default("green")
+  lang       String  @default("auto")
+  wakeWord   Boolean @default(false)
+  volume     Float   @default(1.0)
+  voiceMode  String  @default("auto") // auto | cloud | device
+  voiceInput String  @default("auto") // auto | browser | ai  (ai = cloud ASR, works in Electron/Android/Firefox)
+}
+
+// Devices connected to this JARVIS website (Web PWA / Windows / Android).
+model Device {
+  id        String   @id // client-generated UUID (persisted in localStorage)
+  name      String
+  platform  String   @default("web") // web | windows | android
+  lastSeen  DateTime @default(now())
+  createdAt DateTime @default(now())
+}
