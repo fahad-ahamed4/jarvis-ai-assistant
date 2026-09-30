@@ -11,12 +11,19 @@ const g = globalThis as unknown as { __jarvisReleaseCache?: Cache };
 
 async function latestRelease() {
   const cached = g.__jarvisReleaseCache;
-  if (cached && Date.now() - cached.at < CACHE_TTL) return cached.release;
+  // successful lookups cache 5 min; "no release yet" only 30 s (CI may finish any moment)
+  const ttl = cached?.release ? CACHE_TTL : 30_000;
+  if (cached && Date.now() - cached.at < ttl) return cached.release;
 
+  /* 1) GitHub REST API (rich info). Uses GITHUB_TOKEN if provided (higher limits). */
   let release: Cache["release"] = null;
   try {
     const res = await fetch(`https://api.github.com/repos/${REPO}/releases/latest`, {
-      headers: { Accept: "application/vnd.github+json", "User-Agent": "jarvis-site" },
+      headers: {
+        Accept: "application/vnd.github+json",
+        "User-Agent": "jarvis-site",
+        ...(process.env.GITHUB_TOKEN ? { Authorization: `Bearer ${process.env.GITHUB_TOKEN}` } : {}),
+      },
       cache: "no-store",
       signal: AbortSignal.timeout(8000),
     });
@@ -34,6 +41,43 @@ async function latestRelease() {
     }
   } catch {
     release = null;
+  }
+
+  /* 2) Fallback WITHOUT the API (works even when the API is rate-limited):
+   * follow github.com/{repo}/releases/latest → /releases/tag/<TAG>, then HEAD the
+   * predictable asset URLs to verify existence + size. */
+  if (!release) {
+    try {
+      const page = await fetch(`https://github.com/${REPO}/releases/latest`, {
+        redirect: "follow",
+        cache: "no-store",
+        signal: AbortSignal.timeout(9000),
+        headers: { "User-Agent": "jarvis-site" },
+      });
+      const m = new URL(page.url).pathname.match(/\/releases\/tag\/([^/?#]+)/);
+      if (page.ok && m) {
+        const tag = decodeURIComponent(m[1]);
+        const assets: { name: string; url: string; size: number }[] = [];
+        for (const name of ["archer.exe", "archer.apk"]) {
+          const url = `https://github.com/${REPO}/releases/download/${tag}/${name}`;
+          const head = await fetch(url, {
+            method: "HEAD",
+            redirect: "follow",
+            cache: "no-store",
+            signal: AbortSignal.timeout(9000),
+            headers: { "User-Agent": "jarvis-site" },
+          });
+          if (head.ok) {
+            assets.push({ name, url, size: Number(head.headers.get("content-length") || 0) });
+          }
+        }
+        if (assets.length) {
+          release = { tag, url: `https://github.com/${REPO}/releases/tag/${tag}`, assets };
+        }
+      }
+    } catch {
+      release = null;
+    }
   }
 
   g.__jarvisReleaseCache = { at: Date.now(), release };
