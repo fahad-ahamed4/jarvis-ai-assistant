@@ -5,7 +5,8 @@
   "description": "JARVIS — Voice-controlled AI assistant (monorepo: client / server / electron / android)",
   "scripts": {
     "dev": "cd client && npm run dev",
-    "build": "cd client && npm run build",
+    "build": "cd client && npm run build && node ../scripts/assemble-deploy.mjs",
+    "assemble": "node scripts/assemble-deploy.mjs",
     "start": "cd client && npm run start",
     "lint": "cd client && npm run lint",
     "db:push": "cd client && npx prisma db push --accept-data-loss",
